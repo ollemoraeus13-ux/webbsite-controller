@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Shop Checkout</title></head>
+<body>
+  <h1>Checkout</h1>
+  <p>Total: 499 SEK</p>
+  <label for="email">Email</label><input id="email" type="email" name="email" autocomplete="email">
+  <label for="pw">Password</label><input id="pw" type="password" name="password">
+  <label for="card">Card number</label><input id="card" name="cardnumber" autocomplete="cc-number">
+  <button id="buy" onclick="document.getElementById('done').innerText='ORDER PLACED'">Place order</button>
+  <button id="msg" onclick="document.getElementById('done').innerText='MESSAGE SENT'">Send message</button>
+  <div id="done"></div>
+</body>
+</html>

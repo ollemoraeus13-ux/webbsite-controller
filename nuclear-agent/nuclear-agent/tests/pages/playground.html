@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Nuclear Test Playground</title>
+<style>body{font-family:sans-serif;margin:20px} .spacer{height:2500px} #status{font-weight:bold}</style>
+</head>
+<body>
+  <h1>Test Playground</h1>
+  <p id="info">The secret fact is: uranium-235 is fissile.</p>
+  <button id="btn" onclick="document.getElementById('status').innerText='clicked ' + (++window.clicks)">Click me</button>
+  <span id="status">not clicked</span>
+  <form id="search" onsubmit="event.preventDefault(); document.getElementById('result').innerText='searched: ' + document.getElementById('q').value;">
+    <label for="q">Search</label>
+    <input id="q" name="q" placeholder="Search here">
+    <button type="submit">Go</button>
+  </form>
+  <div id="result"></div>
+  <a href="page2.html" id="link">Go to page two</a>
+  <select id="color"><option>Red</option><option>Green</option></select>
+  <div class="spacer"></div>
+  <p id="bottom">You reached the bottom.</p>
+  <button id="late" onclick="this.innerText='late clicked'">Bottom button</button>
+  <script>window.clicks = 0;</script>
+</body>
+</html>

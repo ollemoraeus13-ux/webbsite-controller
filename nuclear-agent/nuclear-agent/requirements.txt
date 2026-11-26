@@ -1,0 +1,8 @@
+# Nuclear Agent - Python dependencies (tested with the versions noted)
+playwright>=1.50,<2        # tested 1.63.0
+fastapi>=0.115,<1          # tested 0.165.0
+uvicorn>=0.30,<1           # tested 0.54.0
+httpx>=0.27,<1             # tested 0.28.1
+pillow>=10,<13             # tested 12.3.0
+pytesseract>=0.3.10,<0.4   # optional OCR; needs the Tesseract program too
+pytest>=8,<10              # tests only; tested 9.1.1

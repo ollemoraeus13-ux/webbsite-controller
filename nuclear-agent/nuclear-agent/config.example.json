@@ -1,0 +1,41 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8765
+  },
+  "browser": {
+    "headless": false,
+    "viewport_width": 1280,
+    "viewport_height": 800,
+    "persistent_profile": true,
+    "executable_path": "",
+    "navigation_timeout_ms": 30000,
+    "action_timeout_ms": 8000
+  },
+  "ollama": {
+    "url": "http://127.0.0.1:11434",
+    "model": "qwen2.5:7b",
+    "vision_model": "",
+    "use_vision": false,
+    "num_ctx": 8192,
+    "temperature": 0.2,
+    "keep_alive": "5m",
+    "request_timeout_s": 180
+  },
+  "agent": {
+    "max_actions": 30,
+    "step_timeout_s": 240,
+    "max_consecutive_errors": 3,
+    "max_browser_restarts": 2,
+    "history_in_prompt": 8,
+    "max_elements_in_prompt": 60,
+    "max_page_chars": 3500,
+    "checkpoint_every": 3,
+    "use_ocr_fallback": true,
+    "confirm_sensitive_actions": true
+  },
+  "ui": {
+    "history_page_size": 20,
+    "screenshot_refresh_ms": 1500
+  }
+}
