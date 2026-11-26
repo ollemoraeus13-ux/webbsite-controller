@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuclear Agent · Nuclear Studios</title>
+<meta name="description" content="Nuclear Agent – en lokal AI-webbläsaragent från Nuclear Studios. Styr agenten på din PC härifrån.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230b1210' stroke='%232bff88' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23ffd23f'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#070a09;--panel:#0f1513;--panel2:#141c19;--line:#22302b;--text:#e3ece8;--muted:#8a9a93;--accent:#2bff88;--accent-dim:#1a9e56;--warn:#ffd23f;--danger:#ff4d5e;--r:12px;font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-size:15px}
+body{background:radial-gradient(1000px 520px at 15% -10%,#0f2a1d 0%,transparent 60%),var(--bg);min-height:100vh}
+a{color:var(--accent)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(10,15,13,.85);position:sticky;top:0;z-index:5;backdrop-filter:blur(6px);flex-wrap:wrap}
+.brand{display:flex;gap:10px;align-items:center}
+.brand svg{width:40px;height:40px;filter:drop-shadow(0 0 8px rgba(43,255,136,.45))}
+.brand b{font-size:19px;letter-spacing:.5px;display:block}
+.brand small{color:var(--accent);opacity:.85}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:12px;color:var(--muted)}
+.pill.ok{color:var(--accent);border-color:var(--accent-dim)}.pill.warn{color:var(--warn);border-color:#8a7420}.pill.bad{color:var(--danger);border-color:#7a2a33}
+main{max-width:1250px;margin:0 auto;padding:16px;display:grid;gap:14px;grid-template-columns:minmax(290px,360px) minmax(0,1fr)}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card.attn{border-color:var(--warn);box-shadow:0 0 22px rgba(255,210,63,.08)}
+h1{font-size:30px;margin:0 0 6px}h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+h3{margin:12px 0 4px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+p{line-height:1.5;margin:6px 0}.muted{color:var(--muted)}.small{font-size:13px}.hidden{display:none!important}
+input,textarea{width:100%;background:#0a0f0d;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit}
+input:focus,textarea:focus{outline:none;border-color:var(--accent-dim)}
+button{background:#18231f;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+button:hover:not(:disabled){border-color:var(--accent-dim)}button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:var(--accent);color:#04130b;border-color:var(--accent);font-weight:600}.danger{color:var(--danger);border-color:#5a222a}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}.row>*{flex:1}.row>.fixed{flex:none}
+label{display:block;font-size:13px;color:var(--muted);margin-top:8px}label input{margin-top:4px}
+.check{display:flex;gap:8px;align-items:center;color:var(--text)}.check input{width:auto;margin:0}
+.screen{background:#050706;border:1px solid var(--line);border-radius:8px;min-height:240px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.screen img{width:100%;display:block}
+.result{white-space:pre-wrap;background:#0a120e;border:1px solid var(--accent-dim);border-radius:8px;padding:10px;line-height:1.5}
+.list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.list li{background:#0a0f0d;border:1px solid var(--line);border-left:3px solid var(--accent-dim);border-radius:6px;padding:8px 10px;font-size:13px;line-height:1.4}
+.list li.fail{border-left-color:var(--danger)}.list .k{font-weight:700;color:var(--accent);font-size:11px;text-transform:uppercase}
+.list .r{color:var(--muted);font-style:italic}
+pre{white-space:pre-wrap;word-break:break-word;background:#0a0f0d;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px}
+.hero{grid-column:1/-1}
+.steps{padding-left:20px;line-height:1.7;margin:6px 0}
+.progress{height:6px;background:#0a0f0d;border-radius:6px;overflow:hidden;margin-top:8px}.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--accent-dim),var(--accent));transition:width .4s}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#18231f;border:1px solid var(--accent-dim);padding:10px 16px;border-radius:8px;z-index:20;max-width:92vw}.toast.err{border-color:var(--danger);color:#ffd6da}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#0b1210" stroke="#2bff88" stroke-width="2"/><ellipse cx="32" cy="32" rx="22" ry="8" stroke="#2bff88" stroke-width="2" opacity=".85"/><ellipse cx="32" cy="32" rx="22" ry="8" stroke="#2bff88" stroke-width="2" opacity=".85" transform="rotate(60 32 32)"/><ellipse cx="32" cy="32" rx="22" ry="8" stroke="#2bff88" stroke-width="2" opacity=".85" transform="rotate(-60 32 32)"/><circle cx="32" cy="32" r="5" fill="#ffd23f"/></svg>
+    <div><b>Nuclear Agent</b><small>by Nuclear Studios</small></div>
+  </div>
+  <div class="pills">
+    <span class="pill" id="p-conn">Inte ansluten</span>
+    <span class="pill hidden" id="p-browser"></span>
+    <span class="pill hidden" id="p-task"></span>
+  </div>
+</header>
+
+<main>
+  <!-- Intro + connect -->
+  <section class="card hero" id="intro">
+    <h1>Din egen AI-webbläsaragent</h1>
+    <p class="muted">Nuclear Agent kör en riktig webbläsare och en lokal AI (Ollama) på <b>din</b> Windows-PC. Den här sidan är en fjärrkontroll:
+      den ansluter till agenten på din dator, så du kan ge uppdrag, se skärmen live och godkänna köp – även från mobilen.</p>
+    <div class="row">
+      <a class="fixed" id="dl-repo" href="https://github.com/ollemoraeus13-ux/webbsite-controller"><button class="fixed">Koden på GitHub</button></a>
+      <a class="fixed" id="dl-zip" href="https://github.com/ollemoraeus13-ux/webbsite-controller/archive/refs/heads/main.zip"><button class="primary fixed">⬇ Ladda ner (Windows)</button></a>
+    </div>
+  </section>
+
+  <div class="col">
+    <section class="card" id="connect-card">
+      <h2>Anslut till din agent</h2>
+      <label>Agentens adress
+        <input id="c-url" value="http://127.0.0.1:8765" autocomplete="off" spellcheck="false"></label>
+      <label>Panelnyckel (börjar med na_)
+        <input id="c-key" type="password" autocomplete="off" spellcheck="false" placeholder="na_…"></label>
+      <label class="check"><input type="checkbox" id="c-remember"> Kom ihåg på den här enheten</label>
+      <div class="row"><button class="primary" id="c-connect">Anslut</button><button id="c-disconnect" class="hidden">Koppla från</button></div>
+      <p class="muted small" id="c-msg"></p>
+      <details class="small muted">
+        <summary>Första gången? Så här gör du</summary>
+        <ol class="steps">
+          <li>Ladda ner appen, kör <b>install.bat</b> och sedan <b>start.bat</b> på din PC.</li>
+          <li>I agentens panel (http://127.0.0.1:8765): <b>Settings → AI connections</b>.</li>
+          <li>Skriv in <code id="this-origin"></code> under <i>Web pages allowed to connect</i> och spara.</li>
+          <li>Skapa en nyckel av typen <b>Panel (you)</b> och klistra in den här.</li>
+          <li><b>På samma PC:</b> använd adressen <code>http://127.0.0.1:8765</code> (Chrome/Edge kan fråga om åtkomst till lokala nätverket – tillåt).</li>
+          <li><b>Från mobilen/annan dator:</b> slå på <i>Allow remote access</i>, kör <b>remote.bat</b> och använd adressen <code>https://…trycloudflare.com</code> som visas.</li>
+        </ol>
+      </details>
+    </section>
+
+    <section class="card hidden" id="task-card">
+      <h2>Uppdrag</h2>
+      <textarea id="t-goal" rows="4" placeholder="T.ex. &quot;Gå till sv.wikipedia.org och ta reda på hur många som bor i Örnsköldsvik.&quot;"></textarea>
+      <input id="t-url" placeholder="Start-URL (valfritt)" style="margin-top:8px">
+      <div class="row">
+        <button class="primary" id="t-start" style="flex:2">▶ Starta</button>
+        <button id="t-pause">⏸</button><button id="t-resume">⏵</button><button class="danger" id="t-stop">■</button>
+      </div>
+    </section>
+
+    <section class="card attn hidden" id="approve-card">
+      <h2>⚠ Godkännande krävs</h2>
+      <p id="a-reason"></p>
+      <div class="row"><button class="primary" id="a-yes">Godkänn</button><button class="danger" id="a-no">Neka</button></div>
+      <p class="muted small hidden" id="a-noscope">Den här nyckeln får inte godkänna. Använd en Panel-nyckel eller agentens egen panel.</p>
+    </section>
+
+    <section class="card attn hidden" id="user-card">
+      <h2>🙋 Agenten behöver dig</h2>
+      <p id="u-msg"></p>
+      <div class="row"><input id="u-reply" placeholder="Svar till agenten (valfritt)"><button class="fixed" id="u-send">Skicka &amp; fortsätt</button></div>
+    </section>
+
+    <section class="card hidden" id="status-card">
+      <h2>Status</h2>
+      <p id="s-line"><b>Inget uppdrag körs.</b></p>
+      <div class="progress"><div id="s-bar"></div></div>
+      <h3>AI:ns resonemang</h3><p id="s-sum" class="muted">–</p>
+      <h3>Anteckningar</h3><ul id="s-notes" class="muted small"></ul>
+      <h3 id="s-res-h" class="hidden">Resultat</h3><div id="s-res" class="result hidden"></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="card hidden" id="screen-card">
+      <h2>Live-vy</h2>
+      <div class="screen"><img id="shot" alt="Agentens webbläsare" class="hidden"><span id="shot-empty" class="muted">Webbläsaren är inte igång.</span></div>
+    </section>
+    <section class="card hidden" id="hist-card">
+      <h2>Händelser</h2>
+      <ol class="list" id="actions"></ol>
+      <h3>Tidigare uppdrag</h3>
+      <ol class="list" id="tasks"></ol>
+    </section>
+    <section class="card" id="about-card">
+      <h2>Vad kan den?</h2>
+      <ul class="steps muted">
+        <li>Öppnar sajter, läser, klickar, skriver och scrollar – ett steg i taget, med en lokal AI.</li>
+        <li>Pausa, fortsätt och stoppa när som helst. Uppdrag sparas och kan återupptas efter omstart.</li>
+        <li>Köp, meddelanden och personuppgifter kräver <b>ditt</b> godkännande. Lösenord, kortnummer och CAPTCHA gör den aldrig själv.</li>
+        <li>Andra AI:er (Claude, ChatGPT, Cursor) kan använda den som verktyg via MCP – men kan aldrig godkänna köp åt sig själva.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+<footer>Nuclear Agent · Nuclear Studios · Allt körs på din egen dator – den här sidan skickar bara dina kommandon dit.</footer>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const S = { base: "", key: "", scopes: [], taskId: null, lastActKey: "", timers: [], shotBusy: false, shotUrl: null, resultFor: null };
+
+  // GitHub Pages: point the download links at the repo this page is served from.
+  try {
+    if (location.hostname.endsWith(".github.io")) {
+      const owner = location.hostname.split(".")[0];
+      const repo = location.pathname.split("/").filter(Boolean)[0];
+      if (repo) {
+        $("dl-repo").href = `https://github.com/${owner}/${repo}`;
+        $("dl-zip").href = `https://github.com/${owner}/${repo}/archive/refs/heads/main.zip`;
+      }
+    }
+  } catch (_) {}
+  $("this-origin").textContent = location.origin;
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (_) {} },
+  };
+
+  let tt = null;
+  function toast(m, err) { const t = $("toast"); t.textContent = m; t.className = "toast" + (err ? " err" : ""); clearTimeout(tt); tt = setTimeout(() => t.classList.add("hidden"), err ? 6000 : 2500); }
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  const pill = (id, text, cls) => { const p = $(id); p.textContent = text; p.className = "pill " + (cls || ""); };
+  const has = (s) => S.scopes.includes(s);
+
+  async function api(path, opts = {}) {
+    const init = { method: opts.method || "GET", headers: { Authorization: "Bearer " + S.key } };
+    if (opts.body !== undefined) { init.headers["Content-Type"] = "application/json"; init.body = JSON.stringify(opts.body); }
+    let res;
+    try { res = await fetch(S.base + "/remote/v1" + path, init); }
+    catch (e) { throw new Error("Kunde inte nå agenten. Kör start.bat (och remote.bat om du är utanför datorn)."); }
+    if (opts.raw) return res;
+    let data = null; try { data = await res.json(); } catch (_) {}
+    if (!res.ok) throw new Error((data && data.error) || "HTTP " + res.status);
+    return data;
+  }
+  async function act(fn, ok) { try { const r = await fn(); if (ok) toast(ok); poll(); return r; } catch (e) { toast(e.message, true); } }
+
+  // ------------------------------------------------------------ connect
+  async function connect() {
+    let url = $("c-url").value.trim().replace(/\/+$/, "");
+    if (url && !/^https?:\/\//i.test(url)) url = (/^(localhost|127\.)/.test(url) ? "http://" : "https://") + url;
+    S.base = url; S.key = $("c-key").value.trim();
+    $("c-msg").textContent = "Ansluter…";
+    try {
+      const who = await api("/whoami");
+      S.scopes = who.scopes || [];
+      $("c-msg").textContent = `Ansluten som "${who.name}" (${S.scopes.join(", ")}).`;
+      if ($("c-remember").checked) { store.set("na_url", url); store.set("na_key", S.key); }
+      else { store.del("na_url"); store.del("na_key"); }
+      pill("p-conn", "Ansluten", "ok");
+      ["task-card", "status-card", "screen-card", "hist-card", "c-disconnect"].forEach((id) => $(id).classList.remove("hidden"));
+      $("c-connect").classList.add("hidden");
+      $("intro").classList.add("hidden");
+      S.timers.forEach(clearInterval);
+      S.timers = [setInterval(poll, 1500), setInterval(shot, 2000), setInterval(history, 3000)];
+      poll(); shot(); history(); tasks();
+    } catch (e) {
+      $("c-msg").textContent = e.message;
+      pill("p-conn", "Inte ansluten", "bad");
+    }
+  }
+  function disconnect() {
+    S.timers.forEach(clearInterval); S.timers = [];
+    ["task-card", "status-card", "screen-card", "hist-card", "approve-card", "user-card", "c-disconnect", "p-browser", "p-task"].forEach((id) => $(id).classList.add("hidden"));
+    $("c-connect").classList.remove("hidden"); $("intro").classList.remove("hidden");
+    pill("p-conn", "Inte ansluten", ""); $("c-msg").textContent = "";
+  }
+
+  // --------------------------------------------------------------- poll
+  async function poll() {
+    let st;
+    try { st = await api("/status"); } catch (e) { pill("p-conn", "Tappad anslutning", "bad"); return; }
+    pill("p-conn", "Ansluten", "ok");
+    $("p-browser").classList.remove("hidden"); $("p-task").classList.remove("hidden");
+    pill("p-browser", st.browser.running ? "Webbläsare: på" : "Webbläsare: av", st.browser.running ? "ok" : "");
+    const t = st.task, s = t ? t.status : "idle", busy = st.busy;
+    pill("p-task", "Uppdrag: " + s.replace("_", " "), { running: "ok", completed: "ok", paused: "warn", needs_user: "warn", awaiting_confirmation: "warn", failed: "bad" }[s] || "");
+    $("t-start").disabled = busy || !has("submit");
+    $("t-pause").disabled = !(busy && s === "running" && has("control"));
+    $("t-resume").disabled = !(busy && (s === "paused" || s === "needs_user") && has("control"));
+    $("t-stop").disabled = !(busy && has("control"));
+    if (t) {
+      if (S.taskId !== t.task_id) { S.taskId = t.task_id; S.lastActKey = ""; }
+      $("s-line").textContent = `#${t.task_id} · ${s.replace("_", " ")} · steg ${t.step}/${t.max_actions}` + (t.message ? " — " + t.message : "");
+      $("s-bar").style.width = Math.min(100, t.step / Math.max(1, t.max_actions) * 100) + "%";
+      $("s-sum").textContent = t.summary || "–";
+      const n = $("s-notes"); n.replaceChildren(); (t.memory || []).forEach((m) => n.appendChild(el("li", "", m)));
+    }
+    const needApprove = t && s === "awaiting_confirmation" && t.pending;
+    $("approve-card").classList.toggle("hidden", !needApprove);
+    if (needApprove) {
+      $("a-reason").textContent = t.pending.reason;
+      $("a-yes").disabled = $("a-no").disabled = !has("approve");
+      $("a-noscope").classList.toggle("hidden", has("approve"));
+    }
+    $("user-card").classList.toggle("hidden", !(t && s === "needs_user"));
+    if (t && s === "needs_user") $("u-msg").textContent = t.message || "";
+    if (t && !busy && ["completed", "failed", "stopped"].includes(s) && S.resultFor !== t.task_id) {
+      S.resultFor = t.task_id;
+      try {
+        const info = await api(`/tasks/${t.task_id}`);
+        $("s-res").textContent = info.result || info.error || "(inget resultat)";
+        $("s-res").classList.remove("hidden"); $("s-res-h").classList.remove("hidden");
+        tasks();
+      } catch (_) { S.resultFor = null; }
+    }
+  }
+
+  async function shot() {
+    if (S.shotBusy || document.hidden) return;
+    S.shotBusy = true;
+    try {
+      const r = await api("/screenshot", { raw: true });
+      if (r.status === 200) {
+        const url = URL.createObjectURL(await r.blob()), img = $("shot");
+        img.onload = () => { if (S.shotUrl) URL.revokeObjectURL(S.shotUrl); S.shotUrl = url; };
+        img.src = url; img.classList.remove("hidden"); $("shot-empty").classList.add("hidden");
+      } else { $("shot").classList.add("hidden"); $("shot-empty").classList.remove("hidden"); }
+    } catch (_) {} finally { S.shotBusy = false; }
+  }
+
+  async function history() {
+    if (!S.taskId) return;
+    try {
+      const { actions } = await api(`/tasks/${S.taskId}/actions?limit=20`);
+      const key = S.taskId + ":" + (actions[0] ? actions[0].id : 0);
+      if (key === S.lastActKey) return; S.lastActKey = key;
+      const l = $("actions"); l.replaceChildren();
+      if (!actions.length) l.appendChild(el("li", "", "Inga händelser än."));
+      actions.forEach((a) => {
+        const li = el("li", a.ok ? "" : "fail");
+        li.appendChild(el("span", "k", `${a.step} · ${a.kind}`));
+        if (a.reasoning) li.appendChild(el("div", "r", a.reasoning));
+        if (a.outcome) li.appendChild(el("div", "", a.outcome));
+        l.appendChild(li);
+      });
+    } catch (_) {}
+  }
+
+  async function tasks() {
+    try {
+      const { tasks } = await api("/tasks?limit=10");
+      const l = $("tasks"); l.replaceChildren();
+      if (!tasks.length) l.appendChild(el("li", "", "Inga uppdrag än."));
+      tasks.forEach((t) => {
+        const li = el("li", t.status === "failed" ? "fail" : "");
+        li.appendChild(el("span", "k", `#${t.id} · ${t.status} · ${t.source || ""}`));
+        li.appendChild(el("div", "", t.goal));
+        if (t.result) li.appendChild(el("div", "r", t.result.slice(0, 200)));
+        li.onclick = () => { S.taskId = t.id; S.lastActKey = ""; history(); };
+        li.style.cursor = "pointer";
+        l.appendChild(li);
+      });
+    } catch (_) {}
+  }
+
+  // ------------------------------------------------------------ buttons
+  $("c-connect").onclick = connect;
+  $("c-key").addEventListener("keydown", (e) => { if (e.key === "Enter") connect(); });
+  $("c-disconnect").onclick = disconnect;
+  $("t-start").onclick = () => {
+    const goal = $("t-goal").value.trim();
+    if (!goal) return toast("Skriv ett uppdrag först.", true);
+    S.resultFor = null; $("s-res").classList.add("hidden"); $("s-res-h").classList.add("hidden");
+    act(() => api("/tasks", { method: "POST", body: { goal, start_url: $("t-url").value.trim() } }), "Uppdraget startat");
+  };
+  $("t-pause").onclick = () => act(() => api("/task/pause", { method: "POST" }), "Pausar efter aktuellt steg");
+  $("t-resume").onclick = () => act(() => api("/task/resume", { method: "POST" }), "Fortsätter");
+  $("t-stop").onclick = () => act(() => api("/task/stop", { method: "POST" }), "Stoppat");
+  $("a-yes").onclick = () => act(() => api("/task/confirm", { method: "POST", body: { approve: true } }), "Godkänt");
+  $("a-no").onclick = () => act(() => api("/task/confirm", { method: "POST", body: { approve: false } }), "Nekat");
+  $("u-send").onclick = () => {
+    const text = $("u-reply").value.trim() || "Klart, fortsätt.";
+    act(() => api("/task/reply", { method: "POST", body: { text, resume: true } }), "Skickat").then(() => ($("u-reply").value = ""));
+  };
+
+  const savedUrl = store.get("na_url"), savedKey = store.get("na_key");
+  if (savedUrl) $("c-url").value = savedUrl;
+  if (savedKey) { $("c-key").value = savedKey; $("c-remember").checked = true; connect(); }
+})();
+</script>
+</body>
+</html>
