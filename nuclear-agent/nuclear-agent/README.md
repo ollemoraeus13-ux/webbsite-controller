@@ -27,7 +27,17 @@ browser, and no five-minute session limit.
 - **Honest about vision:** it detects which Ollama models really accept images. Text-only models are told they cannot see, and use the DOM (plus optional OCR) instead.
 - **Low VRAM use:** small context window, one model at a time, configurable `keep_alive`.
 - **Control panel:** a dark web UI with live screenshots, status, a short AI reasoning summary, action history, checkpoint/memory viewer, task list, model picker and settings. Refreshing the panel never affects a running task.
-- **Localhost-only API** with a per-session token, Host and Origin checks. See [docs/REMOTE_ACCESS.md](docs/REMOTE_ACCESS.md).
+- **Use it from other AIs (like TinyFish, but on your own PC):** an MCP server with tools such as `run_web_task`, `wait_for_task` and `get_screenshot`.
+  - Claude Desktop: one click with `connect_claude.bat`.
+  - Cursor and other apps on the PC: `http://127.0.0.1:8765/mcp`.
+  - ChatGPT and other apps outside the PC: through a Cloudflare tunnel with `remote.bat`.
+- **HTML panel on GitHub Pages:** `docs/index.html` is a full remote control you can open like a normal website, including on your phone.
+- **Secure by default:**
+  - the server listens on localhost only, and every remote call needs an API key with scopes
+  - an AI key can never approve purchases or messages (only you can)
+  - tunnel access is off until you switch it on
+  - CORS allow-list, rate limits and an audit log
+  - see [docs/REMOTE_ACCESS.md](docs/REMOTE_ACCESS.md)
 
 ---
 
@@ -96,6 +106,49 @@ Use the visible browser window (headless off, the default) and log in yourself.
 With *Keep logins between runs* on, the session is stored in `data/profile`.
 The agent will never type passwords for you.
 
+## Use it from other AIs (MCP) and from the web
+
+The full guide is in **[docs/REMOTE_ACCESS.md](docs/REMOTE_ACCESS.md)**. In short:
+
+| Who | How |
+|---|---|
+| Claude Desktop on this PC | Double-click `connect_claude.bat`, then restart Claude Desktop. |
+| Claude Code | `claude mcp add nuclear-agent -- "<repo>\.venv\Scripts\python.exe" "<repo>\nuclear_mcp.py"` |
+| Cursor and other apps on this PC | MCP URL `http://127.0.0.1:8765/mcp` with header `Authorization: Bearer <AI key>` |
+| ChatGPT, your phone, other PCs | In Settings: *Allow remote access* plus a key. Run `remote.bat` and use `https://<tunnel>/mcp/k/<key>`. |
+| Browser / phone panel | Publish `docs/` with GitHub Pages and log in with a **Panel** key. |
+
+MCP tools:
+
+| Tool | What it does |
+|---|---|
+| `run_web_task(task, start_url?, wait_seconds?)` | Starts a task and returns the result, or a `task_id` if it isn't done yet |
+| `wait_for_task(task_id, seconds)` | Waits for a running task |
+| `get_task(task_id)` | Status and result of a task |
+| `reply_to_agent(text)` | Answers a question the agent asked |
+| `stop_task()` | Stops the current task |
+| `list_tasks(limit)` | Lists recent tasks |
+| `get_screenshot()` | Returns what the agent's browser shows now |
+
+Approvals for sensitive actions always come from a person, in the local panel or the GitHub Pages panel with a Panel key.
+
+### Publish the HTML panel (GitHub Pages)
+1. In the GitHub repo, go to **Settings → Pages → Deploy from a branch**, choose branch `main` and folder `/docs`, and press **Save**.
+2. After about a minute it is live at `https://<your-name>.github.io/<repo>/`.
+3. In Nuclear Agent, go to **Settings → AI connections** and create a key of type **Panel (you)**. Log in with it on the page.
+4. Check that `https://<your-name>.github.io` is listed under *Web pages allowed to connect*.
+
+## Snabbguide på svenska
+
+1. Kör `install.bat` och sedan `start.bat`. Panelen öppnas på http://127.0.0.1:8765.
+2. **Claude på din dator:** kör `connect_claude.bat` och starta om Claude Desktop. Be Claude: *"Använd Nuclear Agent för att …"*.
+3. **Webbsidan (GitHub Pages):** aktivera Pages för mappen `/docs`. Skapa en **Panel**-nyckel i *Settings → AI connections* och logga in med den på sidan.
+4. **ChatGPT eller mobilen utanför hemmet:**
+   1. Bocka i *Allow remote access* och spara.
+   2. Installera cloudflared med `winget install --id Cloudflare.cloudflared` och kör `remote.bat`.
+   3. Använd adressen som visas, till exempel `https://xxx.trycloudflare.com/mcp/k/<nyckel>`.
+5. En AI kan aldrig godkänna köp eller meddelanden. Det gör alltid du.
+
 ## Configuration
 
 All settings are in `config.json`, created from `config.example.json`. Most
@@ -112,6 +165,8 @@ can be changed in the Settings tab. Notable ones:
 | `browser.headless` | false | Hide the browser window |
 | `browser.executable_path` | "" | Use an installed Chrome/Edge instead of Playwright's Chromium |
 | `server.port` | 8765 | Control panel port (host is always 127.0.0.1) |
+| `remote.enabled` | false | Allow access through a tunnel (a key is still required) |
+| `remote.allowed_origins` | your github.io | Web pages allowed to call the agent from a browser |
 
 ## Optional: OCR
 
@@ -145,13 +200,18 @@ scripted fake model stands in for Ollama, so the tests run without a GPU.
 | *Missing or invalid token* | The server was restarted. Reload the control panel page. |
 | Browser window doesn't appear | Untick *Headless* in Settings, Save, then stop and start the browser |
 | A site blocks the agent / shows CAPTCHA | Expected. Nuclear Agent does not bypass bot protection. Solve it yourself and press Resume, or use another site. |
-| Something else | Logs are in `data/logs/agent.log` |
+| Claude Desktop doesn't show Nuclear Agent | Run `connect_claude.bat` again, then fully quit Claude Desktop from the tray and reopen it. The log is in `data/logs/started_by_mcp.log`. |
+| GitHub Pages panel: "Kunde inte nå agenten" | Make sure the agent is running and the page's address is in *Web pages allowed to connect*. On the same PC use `http://127.0.0.1:8765` and allow "local network access" if Chrome asks. On other devices use the `remote.bat` address. |
+| `Remote access is turned off` | Tick *Allow remote access* in Settings and press Save. |
+| AI says it can't approve | By design. Approve in the panel. |
+| Something else | Logs are in `data/logs/agent.log`. Remote calls are logged in `data/logs/remote_audit.jsonl`. |
 
 ## Project structure
 
 ```
 nuclear-agent/
 ├─ install.bat / start.bat / run_tests.bat
+├─ connect_claude.bat / remote.bat / nuclear_mcp.py   AI connections
 ├─ requirements.txt, config.example.json
 ├─ nuclear_agent/
 │  ├─ __main__.py   entry point (localhost-only check, logging)
@@ -165,10 +225,16 @@ nuclear-agent/
 │  ├─ prompts.py    compact prompt for small local models
 │  ├─ storage.py    SQLite: tasks, actions, checkpoints
 │  ├─ ocr.py        optional Tesseract fallback
+│  ├─ keys.py       API keys (hashed), scopes, rate limits
+│  ├─ service.py    what remote clients may do (scope checks, audit log)
+│  ├─ remote.py     /remote/v1 REST API + /mcp endpoint, tunnel rules
+│  ├─ mcp_tools.py  the MCP tools (shared by HTTP and stdio)
+│  ├─ mcp_stdio.py  stdio MCP server for Claude Desktop/Code
+│  ├─ setup_claude.py  adds the agent to Claude Desktop's config
 │  └─ config.py     settings with validation
 ├─ web/             control panel (HTML/CSS/JS, no build step)
 ├─ tests/           pytest suite + local test pages
-└─ docs/REMOTE_ACCESS.md
+└─ docs/            index.html = GitHub Pages panel, REMOTE_ACCESS.md
 ```
 
 ## Privacy and what never goes to GitHub
@@ -180,9 +246,12 @@ before every push. If you ever see `data/` or `config.json` listed, stop.
 ## Remote access
 
 Nuclear Agent only listens on `127.0.0.1`. Uploading this repository to GitHub
-does **not** let ChatGPT or anyone else control your PC. For how an
-authenticated remote bridge could be added safely later, see
-[docs/REMOTE_ACCESS.md](docs/REMOTE_ACCESS.md).
+does **not** let ChatGPT or anyone else control your PC. Outside access needs:
+- *Allow remote access* switched on
+- `remote.bat` running a tunnel
+- a valid API key
+
+See [docs/REMOTE_ACCESS.md](docs/REMOTE_ACCESS.md).
 
 ## Known limitations
 

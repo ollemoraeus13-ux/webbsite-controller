@@ -155,9 +155,30 @@
           <label>Page load timeout (ms) <input type="number" data-key="browser.navigation_timeout_ms"></label>
           <label>Action timeout (ms) <input type="number" data-key="browser.action_timeout_ms"></label>
           <label>Screenshot refresh (ms) <input type="number" data-key="ui.screenshot_refresh_ms"></label>
+          <h3>AI connections (MCP) &amp; remote panel</h3>
+          <label class="check"><input type="checkbox" data-key="remote.enabled"> Allow remote access (through a tunnel, e.g. remote.bat)</label>
+          <label>Web pages allowed to connect (one per line)
+            <textarea rows="2" data-key="remote.allowed_origins" placeholder="https://your-name.github.io"></textarea></label>
           <div class="row"><button type="submit" class="primary">Save settings</button><span id="settings-msg" class="muted small"></span></div>
           <p class="muted small">Browser settings apply the next time the browser starts.</p>
         </form>
+
+        <div class="keys-box">
+          <h3>API keys</h3>
+          <p class="muted small">AI keys can start, follow and stop tasks but can <b>never approve</b> purchases/messages.
+            Panel keys are for <i>you</i> (e.g. the GitHub Pages panel on your phone) and can approve.</p>
+          <ol id="keys" class="actions"></ol>
+          <div class="row">
+            <input id="key-name" placeholder="Name, e.g. ChatGPT" maxlength="60">
+            <select id="key-preset" class="narrow-select">
+              <option value="ai">AI</option><option value="panel">Panel (you)</option><option value="readonly">Read only</option>
+            </select>
+            <button id="btn-key-create">Create</button>
+          </div>
+          <div id="new-key" class="result hidden"></div>
+          <h3>How to connect</h3>
+          <div id="connect-help" class="muted small"></div>
+        </div>
       </div>
     </div>
   </section>

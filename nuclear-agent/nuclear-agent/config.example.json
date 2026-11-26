@@ -34,6 +34,14 @@
     "use_ocr_fallback": true,
     "confirm_sensitive_actions": true
   },
+  "remote": {
+    "enabled": false,
+    "allowed_origins": [
+      "https://ollemoraeus13-ux.github.io"
+    ],
+    "max_requests_per_minute": 300,
+    "max_task_starts_per_hour": 30
+  },
   "ui": {
     "history_page_size": 20,
     "screenshot_refresh_ms": 1500

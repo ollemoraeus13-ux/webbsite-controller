@@ -68,6 +68,9 @@ class Storage:
         with self._lock:
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.executescript(SCHEMA)
+            cols = {r[1] for r in self._conn.execute("PRAGMA table_info(tasks)").fetchall()}
+            if "source" not in cols:  # migration from v0.1.0
+                self._conn.execute("ALTER TABLE tasks ADD COLUMN source TEXT DEFAULT 'panel'")
             self._conn.commit()
 
     def close(self) -> None:
@@ -90,12 +93,13 @@ class Storage:
             return dict(row) if row else None
 
     # --------------------------------------------------------------- tasks
-    def create_task(self, goal: str, max_actions: int, model: str = "", start_url: str = "") -> int:
+    def create_task(self, goal: str, max_actions: int, model: str = "", start_url: str = "",
+                    source: str = "panel") -> int:
         now = time.time()
         cur = self._exec(
-            "INSERT INTO tasks (goal, status, model, start_url, max_actions, created_at, updated_at) "
-            "VALUES (?, 'running', ?, ?, ?, ?, ?)",
-            (goal, model, start_url, int(max_actions), now, now),
+            "INSERT INTO tasks (goal, status, model, start_url, max_actions, source, created_at, updated_at) "
+            "VALUES (?, 'running', ?, ?, ?, ?, ?, ?)",
+            (goal, model, start_url, int(max_actions), source[:80], now, now),
         )
         return int(cur.lastrowid)
 
@@ -130,7 +134,7 @@ class Storage:
     def list_tasks(self, limit: int = 20, offset: int = 0) -> list[dict]:
         limit = max(1, min(int(limit), 200))
         return self._all(
-            "SELECT id, goal, status, steps, max_actions, model, result, error, created_at, updated_at "
+            "SELECT id, goal, status, steps, max_actions, model, source, result, error, created_at, updated_at "
             "FROM tasks ORDER BY id DESC LIMIT ? OFFSET ?", (limit, max(0, int(offset))))
 
     def count_tasks(self) -> int:

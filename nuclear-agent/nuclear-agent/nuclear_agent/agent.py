@@ -468,7 +468,8 @@ class AgentManager:
             model = match[0]
         return model or installed[0]
 
-    async def start_task(self, goal: str, start_url: str = "", max_actions: int | None = None, model: str = "") -> dict:
+    async def start_task(self, goal: str, start_url: str = "", max_actions: int | None = None, model: str = "",
+                         source: str = "panel") -> dict:
         goal = (goal or "").strip()
         if not goal:
             raise ValueError("Task description is empty")
@@ -478,7 +479,7 @@ class AgentManager:
             start_url = normalize_url(start_url)
         model = await self.pick_model(model)
         max_actions = int(max_actions or self.config.get("agent", "max_actions"))
-        tid = self.storage.create_task(goal[:4000], max_actions, model, start_url)
+        tid = self.storage.create_task(goal[:4000], max_actions, model, start_url, source)
         self.runner = TaskRunner(self, tid, goal, max_actions, model, start_url)
         self.runner.task = asyncio.get_running_loop().create_task(self.runner.run())
         return self.runner.snapshot()

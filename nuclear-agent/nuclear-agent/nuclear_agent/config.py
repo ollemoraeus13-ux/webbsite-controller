@@ -61,6 +61,17 @@ DEFAULTS: dict[str, Any] = {
         "use_ocr_fallback": True,
         "confirm_sensitive_actions": True,
     },
+    "remote": {
+        # Lets other AIs (MCP) and the GitHub Pages panel reach the agent.
+        # Requests that come in through a tunnel (non-localhost Host) are refused
+        # unless this is true. A valid API key is ALWAYS required.
+        "enabled": False,
+        # Web pages allowed to call the remote API from a browser (CORS),
+        # e.g. "https://<your-github-name>.github.io"
+        "allowed_origins": [],
+        "max_requests_per_minute": 300,
+        "max_task_starts_per_hour": 30,
+    },
     "ui": {
         "history_page_size": 20,
         "screenshot_refresh_ms": 1500,
@@ -82,7 +93,8 @@ class Config:
     """Thread-safe settings holder backed by a JSON file."""
 
     def __init__(self, path: Path | None = None, data_dir: Path | None = None):
-        self.path = Path(path) if path else PROJECT_ROOT / "config.json"
+        env_cfg = os.environ.get("NUCLEAR_AGENT_CONFIG")
+        self.path = Path(path) if path else Path(env_cfg) if env_cfg else PROJECT_ROOT / "config.json"
         env_data = os.environ.get("NUCLEAR_AGENT_DATA")
         self.data_dir = Path(data_dir or env_data or PROJECT_ROOT / "data")
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -138,7 +150,11 @@ class Config:
                     continue
                 default = DEFAULTS[section][key]
                 try:
-                    if isinstance(default, bool):
+                    if isinstance(default, list):
+                        if isinstance(value, str):
+                            value = [v.strip() for v in value.replace(",", "\n").splitlines() if v.strip()]
+                        value = [str(v).strip().rstrip("/") for v in value if str(v).strip()][:20]
+                    elif isinstance(default, bool):
                         value = value if isinstance(value, bool) else str(value).lower() in ("1", "true", "yes", "on")
                     elif isinstance(default, int):
                         value = int(value)
@@ -193,6 +209,8 @@ def _clamp(clean: dict) -> None:
         ("browser", "viewport_width"): (400, 3840),
         ("browser", "viewport_height"): (300, 2160),
         ("ui", "history_page_size"): (5, 200),
+        ("remote", "max_requests_per_minute"): (10, 5000),
+        ("remote", "max_task_starts_per_hour"): (1, 1000),
         ("ui", "screenshot_refresh_ms"): (300, 60000),
     }
     for (section, key), (lo, hi) in limits.items():

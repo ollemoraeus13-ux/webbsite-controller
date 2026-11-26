@@ -257,12 +257,61 @@
       document.querySelectorAll("#settings [data-key]").forEach((inp) => {
         const [sec, key] = inp.dataset.key.split(".");
         const v = ui.settings[sec][key];
-        if (inp.type === "checkbox") inp.checked = !!v; else inp.value = v;
+        if (inp.type === "checkbox") inp.checked = !!v;
+        else inp.value = Array.isArray(v) ? v.join("\n") : v;
       });
       if (!$("max-actions").value) $("max-actions").value = ui.settings.agent.max_actions;
       await loadModels();
+      await loadKeys();
     } catch (e) { toast(e.message, true); }
   }
+
+  // ------------------------------------------------------ AI connections
+  async function loadKeys() {
+    const info = await api("/api/remote");
+    const list = $("keys"); list.replaceChildren();
+    if (!info.keys.length) list.appendChild(el("li", "", "No keys yet."));
+    info.keys.forEach((k) => {
+      const li = el("li");
+      li.appendChild(el("span", "k", `${k.name} · ${k.preset}${k.local_only ? " · this PC only" : ""}`));
+      li.appendChild(el("div", "", `${k.prefix}… · scopes: ${k.scopes.join(", ")}`));
+      li.appendChild(el("div", "meta", "created " + fmtDate(k.created) + (k.last_used ? " · last used " + fmtDate(k.last_used) : " · never used")));
+      if (k.local_only) { list.appendChild(li); return; }  // needed by Claude Desktop on this PC
+      const b = el("button", "danger", "Revoke");
+      b.onclick = async () => {
+        if (!window.confirm(`Revoke key "${k.name}"? Apps using it stop working.`)) return;
+        await act(() => api(`/api/keys/${k.id}`, { method: "DELETE" }), "Key revoked");
+        loadKeys();
+      };
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+    const h = $("connect-help"); h.replaceChildren();
+    const p = (label, code) => { const e = el("p"); e.appendChild(el("b", "", label + " ")); if (code) e.appendChild(el("code", "", code)); return e; };
+    h.appendChild(p("Claude Desktop on this PC:", "connect_claude.bat"));
+    h.appendChild(p("Other AI apps on this PC (Cursor etc.), MCP URL:", info.local_mcp_url));
+    h.appendChild(el("p", "", "…with header Authorization: Bearer <AI key>."));
+    h.appendChild(p("ChatGPT / phone / outside this PC:", "remote.bat"));
+    h.appendChild(el("p", "", "Turn on 'Allow remote access', save, run remote.bat and use https://<tunnel>.trycloudflare.com/mcp/k/<AI key> as the connector URL."));
+    h.appendChild(p("GitHub Pages panel:", "https://<your-name>.github.io/<repo>/"));
+    h.appendChild(el("p", "", "Add that site's address (without the /repo part) to 'Web pages allowed to connect', and log in there with a Panel key."));
+  }
+
+  $("btn-key-create").onclick = async () => {
+    try {
+      const r = await api("/api/keys", { method: "POST", body: { name: $("key-name").value, preset: $("key-preset").value } });
+      const box = $("new-key");
+      box.textContent = "";
+      box.appendChild(el("div", "", "New key - copy it now, it will not be shown again:"));
+      const code = el("div", "", r.key); code.style.margin = "6px 0"; box.appendChild(code);
+      const copy = el("button", "", "Copy");
+      copy.onclick = () => { try { navigator.clipboard.writeText(r.key); toast("Copied"); } catch (_) { toast("Select and copy it manually", true); } };
+      box.appendChild(copy);
+      box.classList.remove("hidden");
+      $("key-name").value = "";
+      loadKeys();
+    } catch (e) { toast(e.message, true); }
+  };
 
   async function loadModels() {
     const info = $("models-info");

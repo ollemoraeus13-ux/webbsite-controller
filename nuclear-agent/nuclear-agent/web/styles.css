@@ -92,3 +92,9 @@ pre { white-space: pre-wrap; word-break: break-word; background: #0a0f0d; border
 
 .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #18231f; border: 1px solid var(--accent-dim); padding: 10px 16px; border-radius: 8px; z-index: 20; max-width: 90vw; }
 .toast.err { border-color: var(--danger); color: #ffd6da; }
+
+.keys-box { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 6px; }
+.narrow-select { width: 120px; flex: none; }
+#new-key { word-break: break-all; font-family: Consolas, monospace; font-size: 12px; margin-top: 8px; }
+#connect-help code { background: #0a0f0d; border: 1px solid var(--line); border-radius: 4px; padding: 1px 4px; color: var(--text); word-break: break-all; }
+#connect-help p { margin: 6px 0; }
